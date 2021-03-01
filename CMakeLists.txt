@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.4)
 project(serial)
 
-# Find catkin
-find_package(catkin REQUIRED)
+option(INCLUDE_EXAMPLES "Compile examples?" OFF)
 
 if(APPLE)
     find_library(IOKIT_LIBRARY IOKit)
@@ -13,17 +12,17 @@ if(UNIX AND NOT APPLE)
     # If Linux, add rt and pthread
     set(rt_LIBRARIES rt)
     set(pthread_LIBRARIES pthread)
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-        DEPENDS rt pthread
-    )
+    #catkin_package(
+    #    LIBRARIES ${PROJECT_NAME}
+    #    INCLUDE_DIRS include
+    #    DEPENDS rt pthread
+    #)
 else()
     # Otherwise normal call
-    catkin_package(
-        LIBRARIES ${PROJECT_NAME}
-        INCLUDE_DIRS include
-    )
+    #catkin_package(
+    #    LIBRARIES ${PROJECT_NAME}
+    #    INCLUDE_DIRS include
+    #)
 endif()
 
 ## Sources
@@ -48,6 +47,9 @@ endif()
 
 ## Add serial library
 add_library(${PROJECT_NAME} ${serial_SRCS})
+## Include headers
+target_include_directories(serial PUBLIC include)
+
 if(APPLE)
     target_link_libraries(${PROJECT_NAME} ${FOUNDATION_LIBRARY} ${IOKIT_LIBRARY})
 elseif(UNIX)
@@ -56,13 +58,12 @@ else()
     target_link_libraries(${PROJECT_NAME} setupapi)
 endif()
 
-## Uncomment for example
-add_executable(serial_example examples/serial_example.cc)
-add_dependencies(serial_example ${PROJECT_NAME})
-target_link_libraries(serial_example ${PROJECT_NAME})
-
-## Include headers
-include_directories(include)
+# Uncomment for example
+if(INCLUDE_EXAMPLES)
+    add_executable(serial_example examples/serial_example.cc)
+    add_dependencies(serial_example ${PROJECT_NAME})
+    target_link_libraries(serial_example ${PROJECT_NAME})
+endif()
 
 ## Install executable
 install(TARGETS ${PROJECT_NAME}
@@ -76,6 +77,6 @@ install(FILES include/serial/serial.h include/serial/v8stdint.h
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/serial)
 
 ## Tests
-if(CATKIN_ENABLE_TESTING)
-    add_subdirectory(tests)
-endif()
+# if(CATKIN_ENABLE_TESTING)
+#    add_subdirectory(tests)
+# endif()
